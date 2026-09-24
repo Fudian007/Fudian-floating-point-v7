@@ -1,1 +1,72 @@
-
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<title>浮点 V7 · A股专业观察终端</title>
+<style>
+:root{--bg:#07101d;--panel:#0d1726;--panel2:#101d30;--line:#223149;--text:#e7eef9;--muted:#8ea0b8;--red:#ff4d5e;--green:#27c98a;--yellow:#ffd166;--blue:#4da3ff;--orange:#ff9f43}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#07101d,#0a1422);color:var(--text);font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:1180px;margin:auto;padding:12px}.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.brand{font-size:22px;font-weight:800}.sub{color:var(--muted);font-size:12px}
+.search{display:flex;gap:8px;flex:1;min-width:240px}.search input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:12px}.btn{background:#17253a;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 14px;cursor:pointer}
+.tabs{display:flex;gap:6px;margin:12px 0;overflow:auto}.tab{white-space:nowrap}.tab.active{background:#223652}
+.grid{display:grid;grid-template-columns:1fr 310px;gap:12px}.panel{background:rgba(13,23,38,.92);border:1px solid var(--line);border-radius:14px;padding:12px}.quote{display:grid;grid-template-columns:1.2fr repeat(4,1fr);gap:8px}.q strong{font-size:24px}.q small{display:block;color:var(--muted)}.up{color:var(--red)}.down{color:var(--green)}
+.chart{height:430px;position:relative}.chart svg{width:100%;height:100%;display:block}.legend{display:flex;gap:16px;color:var(--muted);font-size:12px;margin-top:6px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:var(--panel2);padding:10px;border-radius:10px}.metric b{display:block;font-size:18px;margin-top:4px}
+.side h3{margin:4px 0 8px}.kv{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:7px 0}.note{color:var(--muted);font-size:12px;margin-top:10px}
+.status{margin-top:8px;color:var(--muted);font-size:12px}.footer{color:#71829a;font-size:11px;padding:14px 2px}
+@media(max-width:800px){.wrap{padding:8px}.grid{grid-template-columns:1fr}.quote{grid-template-columns:1.4fr 1fr 1fr}.chart{height:330px}.metrics{grid-template-columns:repeat(2,1fr)}.side{display:grid;grid-template-columns:1fr 1fr;gap:8px}.side .panel{margin:0}}
+@media(max-width:520px){.brand{font-size:19px}.search{min-width:100%}.quote{grid-template-columns:1fr 1fr}.quote .q:first-child{grid-column:1/-1}.chart{height:290px}.side{display:block}.side .panel{margin-bottom:8px}}
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><div><div class="brand">浮点 V7</div><div class="sub">真实行情数据 · 模型与数据分离 · 缺失留空</div></div>
+<div class="search"><input id="code" value="002185" inputmode="numeric" placeholder="输入6位A股代码"><button class="btn" id="load">查询</button></div></div>
+<div class="tabs"><button class="btn tab active" data-p="day">日K</button><button class="btn tab" data-p="week">周K</button><button class="btn tab" data-p="month">月K</button></div>
+<div class="panel quote" id="quote"></div>
+<div class="grid">
+<main>
+<div class="panel"><div id="chart" class="chart"></div><div class="legend">
+<span><i class="dot" style="background:var(--red)"></i>做多主导</span><span><i class="dot" style="background:var(--yellow)"></i>获利回吐</span><span><i class="dot" style="background:var(--green)"></i>做空主导</span><span><i class="dot" style="background:var(--blue)"></i>空头回补</span><span><i class="dot" style="background:var(--orange)"></i>机构库存模拟</span></div></div>
+<div class="panel"><h3>浮点模型</h3><div class="metrics" id="metrics"></div><div class="note">说明：机构库存、游资动向、主导动能及行为信号均属于基于公开行情数据的模型变量，不代表真实机构持仓或主观意图。模型只使用当日及此前数据，不读取未来价格。</div></div>
+</main>
+<aside class="side"><div class="panel"><h3>数据状态</h3><div id="info"></div></div><div class="panel"><h3>行为信号</h3><div id="signals"></div></div></aside>
+</div>
+<div class="footer">数据层按 a-stock-data V3.10.0 的公开数据路由设计；GitHub Actions 自动更新数据文件。GitHub Pages 仅负责网页发布。</div>
+</div>
+<script>
+const $=s=>document.querySelector(s);let state={code:"002185",period:"day",rows:[]};
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function calc(rows){
+ const r=rows.map(x=>({...x,chg:NaN})); for(let i=1;i<r.length;i++)r[i].chg=(r[i].close/r[i-1].close-1)*100;
+ let last=r[r.length-1], prev=r[r.length-2]; if(!last)return {};
+ const n=20, a=r.slice(-n), avg=a.reduce((s,x)=>s+x.close,0)/a.length;
+ const volavg=a.reduce((s,x)=>s+x.volume,0)/a.length;
+ const momentum=(last.close/avg-1)*100;
+ const volRatio=last.volume/volavg;
+ let bull=0,bear=0; a.slice(1).forEach(x=>{if(x.close>x.open)bull+=x.volume;else if(x.close<x.open)bear+=x.volume});
+ const dom=(bull-bear)/Math.max(1,bull+bear)*100;
+ let signal=dom>25?"做多主导":dom<-25?"做空主导":last.close<avg&&dom>0?"空头回补":last.close>avg&&dom<0?"获利回吐":"中性";
+ return {last,prev,momentum,volRatio,dom,signal,avg};
+}
+function render(){
+ const r=state.rows;if(!r.length){$("#chart").innerHTML="<div class='note'>暂无数据</div>";return}
+ const c=calc(r), last=c.last, prev=c.prev, chg=prev?(last.close/prev.close-1)*100:NaN;
+ $("#quote").innerHTML=`<div class=q><strong>${esc(last.name||state.code)}</strong><small>${state.code} · ${state.period}</small></div><div class=q><small>收盘</small><b>${last.close.toFixed(2)}</b></div><div class=q><small>涨跌</small><b class="${chg>=0?'up':'down'}">${Number.isFinite(chg)?(chg>=0?"+":"")+chg.toFixed(2)+"%":"—"}</b></div><div class=q><small>最高/最低</small><b>${last.high.toFixed(2)} / ${last.low.toFixed(2)}</b></div><div class=q><small>成交量</small><b>${(last.volume/10000).toFixed(1)}万手</b></div>`;
+ const W=900,H=410,p=45, xs=r.map((_,i)=>p+i*(W-2*p)/Math.max(1,r.length-1)), min=Math.min(...r.map(x=>x.low)),max=Math.max(...r.map(x=>x.high)), sy=v=>H-p-(v-min)/(max-min||1)*(H-2*p);
+ let grid="";for(let i=0;i<5;i++){let y=p+i*(H-2*p)/4;grid+=`<line x1="${p}" y1="${y}" x2="${W-p}" y2="${y}" stroke="#223149"/><text x="6" y="${y+4}" fill="#71829a" font-size="11">${(max-(max-min)*i/4).toFixed(2)}</text>`}
+ let candles=r.map((x,i)=>{let X=xs[i],w=Math.max(2,Math.min(10,(W-2*p)/r.length*.65)),yo=sy(x.open),yc=sy(x.close),yh=sy(x.high),yl=sy(x.low),up=x.close>=x.open;return `<line x1="${X}" y1="${yh}" x2="${X}" y2="${yl}" stroke="${up?'#ff4d5e':'#27c98a'}"/><rect x="${X-w/2}" y="${Math.min(yo,yc)}" width="${w}" height="${Math.max(1,Math.abs(yc-yo))}" fill="${up?'#ff4d5e':'#27c98a'}"/>`}).join("");
+ $("#chart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${grid}${candles}</svg>`;
+ $("#metrics").innerHTML=[["主导动能",c.dom.toFixed(1),c.dom>=0?"偏多":"偏空"],["机构库存模拟",Math.min(100,Math.max(0,50+c.momentum*2)).toFixed(1),"模型值"],["游资动向模拟",Math.min(100,Math.max(0,50+(c.volRatio-1)*35)).toFixed(1),"模型值"],["20期均价",c.avg.toFixed(2),"参考"],["量能比",c.volRatio.toFixed(2),"当期/20期"],["行为信号",c.signal,"模型识别"]].map(x=>`<div class=metric><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join("");
+ $("#info").innerHTML=`<div class=kv><span>最新交易日</span><b>${esc(last.date||"—")}</b></div><div class=kv><span>数据根数</span><b>${r.length}</b></div><div class=kv><span>数据源</span><b>${esc(last.source||"a-stock-data")}</b></div>`;
+ $("#signals").innerHTML=`<div class=kv><span>当前</span><b>${c.signal}</b></div><div class=kv><span>动能</span><b>${c.dom.toFixed(1)}</b></div><div class=kv><span>量能比</span><b>${c.volRatio.toFixed(2)}</b></div>`;
+}
+async function load(){
+ state.code=$("#code").value.trim().replace(/\D/g,"").padStart(6,"0");$("#code").value=state.code;
+ try{let u=`data/${state.code}.json?${Date.now()}`,res=await fetch(u,{cache:"no-store"});if(!res.ok)throw Error("该代码尚未同步");let d=await res.json();state.rows=d.data||[];render()}
+ catch(e){$("#chart").innerHTML=`<div class=note>暂无 ${state.code} 的数据。当前公开版先内置 002185；后续可在 watchlist 中加入股票代码后由 GitHub Actions 自动同步。<br>${esc(e.message)}</div>`;$("#quote").innerHTML="";$("#metrics").innerHTML=""}
+}
+$("#load").onclick=load;$("#code").addEventListener("keydown",e=>{if(e.key==="Enter")load()});
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");state.period=b.dataset.p;load()});load();
+</script></body></html>
