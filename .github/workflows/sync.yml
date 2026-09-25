@@ -3,7 +3,7 @@ name: Sync Floating Point Data
 on:
   schedule:
     - cron: "30 16 * * 1-5"
-  timezone: "Asia/Shanghai"
+    timezone: "Asia/Shanghai"
   workflow_dispatch:
 
 permissions:
