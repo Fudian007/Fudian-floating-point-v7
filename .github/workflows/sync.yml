@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: "3.x"
 
-            - name: Sync A-share historical K-line
+      - name: Sync A-share historical K-line
         run: |
           mkdir -p data
           python - <<'PY'
