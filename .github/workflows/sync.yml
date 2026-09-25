@@ -21,51 +21,127 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Sync A-share data
+      - name: Sync A-share historical K-line
         run: |
-          mkdir -p data
-
           python - <<'PY'
           import json
           import urllib.request
-          from datetime import datetime
+          from datetime import datetime, timezone
 
-          code = "002185"
-          url = (
-              "https://qt.gtimg.cn/q=sh"
-              + code
-          )
+          codes = ["002185"]
 
-          try:
-              raw = urllib.request.urlopen(
+          def market(code):
+              return "sh" if code.startswith(("6", "9")) else "sz"
+
+          def fetch(code, unit, count):
+              symbol = market(code) + code
+
+              url = (
+                  "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get"
+                  f"?_var=kline_{unit}qfq"
+                  f"&param={symbol},{unit},,,{count},qfq"
+              )
+
+              req = urllib.request.Request(
                   url,
-                  timeout=15
-              ).read().decode("gbk", errors="ignore")
+                  headers={
+                      "User-Agent": "Mozilla/5.0",
+                      "Referer": "https://finance.qq.com/"
+                  }
+              )
 
-              result = {
+              raw = urllib.request.urlopen(
+                  req,
+                  timeout=20
+              ).read().decode("utf-8", errors="ignore")
+
+              if "=" in raw:
+                  raw = raw.split("=", 1)[1]
+
+              obj = json.loads(raw)
+
+              item = obj.get("data", {}).get(symbol, {})
+
+              rows = (
+                  item.get("qfq" + unit)
+                  or item.get(unit)
+                  or []
+              )
+
+              result = []
+
+              for x in rows:
+                  if len(x) < 6:
+                      continue
+
+                  result.append({
+                      "date": x[0],
+                      "open": float(x[1]),
+                      "close": float(x[2]),
+                      "high": float(x[3]),
+                      "low": float(x[4]),
+                      "volume": float(x[5]),
+                      "source": "Tencent K-line / a-stock-data compatible route"
+                  })
+
+              return result
+
+          stamp = datetime.now(timezone.utc).isoformat()
+
+          for code in codes:
+
+              daily = fetch(code, "day", 500)
+              weekly = fetch(code, "week", 260)
+              monthly = fetch(code, "month", 120)
+
+              payload = {
                   "code": code,
-                  "source": "Tencent",
-                  "updated": datetime.utcnow().isoformat(),
-                  "raw": raw
+                  "name": "华天科技",
+                  "source": "Tencent K-line / a-stock-data compatible route",
+                  "updated": stamp,
+                  "data": daily,
+                  "weekly": weekly,
+                  "monthly": monthly
               }
 
               with open(
-                  "data/002185_live.json",
+                  f"data/{code}.json",
                   "w",
                   encoding="utf-8"
               ) as f:
                   json.dump(
-                      result,
+                      payload,
                       f,
                       ensure_ascii=False,
                       indent=2
                   )
 
-              print("Floating Point data updated:", code)
+              with open(
+                  f"{code}.json",
+                  "w",
+                  encoding="utf-8"
+              ) as f:
+                  json.dump(
+                      payload,
+                      f,
+                      ensure_ascii=False,
+                      indent=2
+                  )
 
-          except Exception as e:
-              print("Data update failed:", e)
-              raise
+              print(
+                  code,
+                  "daily=",
+                  len(daily),
+                  "weekly=",
+                  len(weekly),
+                  "monthly=",
+                  len(monthly)
+              )
+
+              if not daily:
+                  raise RuntimeError(
+                      "No daily K-line data returned"
+                  )
           PY
 
       - name: Commit data
@@ -73,9 +149,9 @@ jobs:
           git config user.name "Floating Point Bot"
           git config user.email "actions@users.noreply.github.com"
 
-          git add data/
+          git add data/ 002185.json
 
           git diff --cached --quiet || \
-            git commit -m "auto: update floating point data"
+            git commit -m "auto: update floating point K-line data"
 
           git push
