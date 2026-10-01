@@ -2,17 +2,8 @@
   "code": "002185",
   "name": "华天科技",
   "source": "Tencent K-line / a-stock-data compatible route",
-  "updated": "2026-09-30T08:45:24.175455+00:00",
+  "updated": "2026-10-01T08:45:37.848332+00:00",
   "data": [
-    {
-      "date": "2024-08-22",
-      "open": 7.66,
-      "close": 7.57,
-      "high": 7.69,
-      "low": 7.55,
-      "volume": 209367.0,
-      "source": "Tencent K-line / a-stock-data compatible route"
-    },
     {
       "date": "2024-08-23",
       "open": 7.57,
