@@ -2,17 +2,8 @@
   "code": "002185",
   "name": "华天科技",
   "source": "Tencent K-line / a-stock-data compatible route",
-  "updated": "2026-10-26T09:14:11.293134+00:00",
+  "updated": "2026-10-27T14:49:19.268516+00:00",
   "data": [
-    {
-      "date": "2024-09-10",
-      "open": 7.44,
-      "close": 7.41,
-      "high": 7.47,
-      "low": 7.2,
-      "volume": 324168.0,
-      "source": "Tencent K-line / a-stock-data compatible route"
-    },
     {
       "date": "2024-09-11",
       "open": 7.43,
@@ -4512,18 +4503,18 @@
       "low": 14.92,
       "volume": 2865225.0,
       "source": "Tencent K-line / a-stock-data compatible route"
+    },
+    {
+      "date": "2026-10-27",
+      "open": 15.1,
+      "close": 15.39,
+      "high": 16.17,
+      "low": 14.75,
+      "volume": 2955235.0,
+      "source": "Tencent K-line / a-stock-data compatible route"
     }
   ],
   "weekly": [
-    {
-      "date": "2021-09-10",
-      "open": 12.327,
-      "close": 12.937,
-      "high": 13.007,
-      "low": 12.267,
-      "volume": 2764177.0,
-      "source": "Tencent K-line / a-stock-data compatible route"
-    },
     {
       "date": "2021-09-17",
       "open": 12.977,
@@ -6856,12 +6847,12 @@
       "source": "Tencent K-line / a-stock-data compatible route"
     },
     {
-      "date": "2026-10-26",
+      "date": "2026-10-27",
       "open": 15.6,
-      "close": 14.92,
-      "high": 15.7,
-      "low": 14.92,
-      "volume": 2865225.0,
+      "close": 15.39,
+      "high": 16.17,
+      "low": 14.75,
+      "volume": 5820460.0,
       "source": "Tencent K-line / a-stock-data compatible route"
     }
   ],
@@ -7938,12 +7929,12 @@
       "source": "Tencent K-line / a-stock-data compatible route"
     },
     {
-      "date": "2026-10-26",
+      "date": "2026-10-27",
       "open": 16.59,
-      "close": 14.92,
+      "close": 15.39,
       "high": 16.86,
       "low": 13.47,
-      "volume": 22736781.0,
+      "volume": 25692016.0,
       "source": "Tencent K-line / a-stock-data compatible route"
     }
   ]
