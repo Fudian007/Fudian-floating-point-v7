@@ -2,17 +2,8 @@
   "code": "002185",
   "name": "华天科技",
   "source": "Tencent K-line / a-stock-data compatible route",
-  "updated": "2026-11-24T19:38:41.902392+00:00",
+  "updated": "2026-11-25T18:46:12.758099+00:00",
   "data": [
-    {
-      "date": "2024-10-21",
-      "open": 10.73,
-      "close": 11.13,
-      "high": 11.23,
-      "low": 10.71,
-      "volume": 2618277.0,
-      "source": "Tencent K-line / a-stock-data compatible route"
-    },
     {
       "date": "2024-10-22",
       "open": 11.17,
@@ -4503,6 +4494,15 @@
       "low": 13.6,
       "volume": 1657971.0,
       "source": "Tencent K-line / a-stock-data compatible route"
+    },
+    {
+      "date": "2026-11-25",
+      "open": 13.3,
+      "close": 12.75,
+      "high": 13.38,
+      "low": 12.73,
+      "volume": 1260712.0,
+      "source": "Tencent K-line / a-stock-data compatible route"
     }
   ],
   "weekly": [
@@ -6838,12 +6838,12 @@
       "source": "Tencent K-line / a-stock-data compatible route"
     },
     {
-      "date": "2026-11-24",
+      "date": "2026-11-25",
       "open": 13.46,
-      "close": 13.65,
+      "close": 12.75,
       "high": 14.45,
       "low": 12.5,
-      "volume": 3548000.0,
+      "volume": 4808712.0,
       "source": "Tencent K-line / a-stock-data compatible route"
     }
   ],
@@ -7920,12 +7920,12 @@
       "source": "Tencent K-line / a-stock-data compatible route"
     },
     {
-      "date": "2026-11-24",
+      "date": "2026-11-25",
       "open": 14.99,
-      "close": 13.65,
+      "close": 12.75,
       "high": 15.75,
       "low": 12.5,
-      "volume": 30074082.0,
+      "volume": 31334794.0,
       "source": "Tencent K-line / a-stock-data compatible route"
     }
   ]
